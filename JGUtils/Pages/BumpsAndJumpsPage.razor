@@ -1,0 +1,138 @@
+﻿@page "/BumpsAndJumpsPage"
+@inject IJSRuntime js;
+@using System.Diagnostics
+
+<h1>@currentIteration</h1>
+
+<h2>@currentTime</h2>
+
+<button class="btn btn-primary" @onclick="StartStop">@startStopLabel</button>
+<button class="btn btn-primary" @onclick="Reset">Reset</button>
+
+<audio id="player"><source id="playerSource" src="" /></audio>
+
+@code {
+
+    private bool _stopped;
+    private string currentIteration = "Standby To Get Some!";
+    private string currentTime = $"{TimeSpan.Zero:mm\\:ss}";
+    private bool isBurpees;
+    private bool isBoxJumps = true;
+    private string startStopLabel = "Start";
+
+    readonly Stopwatch stopwatch = new Stopwatch();
+
+    private async Task Start()
+    {
+        _stopped = false;
+
+        while (!_stopped)
+        {
+            if (!stopwatch.IsRunning)
+            {
+                stopwatch.Start();
+            }
+
+            currentTime = $"{stopwatch.Elapsed:mm\\:ss}";
+
+            if (stopwatch.Elapsed.Minutes % 2 == 0)
+            {
+                currentIteration = "Burpees x 10";
+
+                if (isBoxJumps)
+                {
+                    await PlayAudio("Good");
+                    isBoxJumps = !isBoxJumps;
+                    isBurpees = !isBurpees;
+                }
+            }
+            else
+            {
+                currentIteration = "Box Jumps x 12";
+
+                if (isBurpees)
+                {
+                    await PlayAudio("Excuses");
+                    isBoxJumps = !isBoxJumps;
+                    isBurpees = !isBurpees;
+                }
+            }
+            StateHasChanged();
+            await Task.Delay(100);
+        }
+
+    }
+
+    private async Task StartStop()
+    {
+        _stopped = !_stopped;
+        if (_stopped)
+        {
+            stopwatch.Start();
+            startStopLabel = "Stop";
+
+            while (_stopped)
+            {
+                if (!stopwatch.IsRunning)
+                {
+                    stopwatch.Start();
+                }
+
+                currentTime = $"{stopwatch.Elapsed:mm\\:ss}";
+
+                if (stopwatch.Elapsed.Minutes % 2 == 0)
+                {
+                    currentIteration = "Burpees x 10";
+
+                    if (isBoxJumps)
+                    {
+                        await PlayAudio("Good");
+                        isBoxJumps = !isBoxJumps;
+                        isBurpees = !isBurpees;
+                    }
+                }
+                else
+                {
+                    currentIteration = "Box Jumps x 12";
+
+                    if (isBurpees)
+                    {
+                        await PlayAudio("Excuses");
+                        isBoxJumps = !isBoxJumps;
+                        isBurpees = !isBurpees;
+                    }
+                }
+                StateHasChanged();
+                await Task.Delay(100);
+            }
+        }
+        else
+        {
+            stopwatch.Stop();
+            currentTime = $"{stopwatch.Elapsed:mm\\:ss}";
+            startStopLabel = "Start";
+            StateHasChanged();
+        }
+    }
+
+    private async Task PlayAudio(string filename)
+    {
+        await js.InvokeVoidAsync("PlayAudioFile", $@"/sounds/{filename}.mp3");
+    }
+
+    private void Stop()
+    {
+        _stopped = true;
+        stopwatch.Stop();
+        currentTime = $"{stopwatch.Elapsed:mm\\:ss}";
+    }
+
+    private void Reset()
+    {
+        stopwatch.Reset();
+        currentTime = $"{stopwatch.Elapsed:mm\\:ss}";
+        isBurpees = false;
+        isBoxJumps = true;
+        currentIteration = "Standby To Get Some!";
+    }
+}

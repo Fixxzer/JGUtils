@@ -1,0 +1,52 @@
+﻿@page "/StopwatchPage"
+@using System.Diagnostics
+
+
+<h1>@currentTime</h1>
+
+<button class="btn btn-primary" @onclick="StartStop">@startStopLabel</button>
+<button class="btn btn-primary" @onclick="Reset">Reset</button>
+
+@code {
+
+    private bool _stopped;
+    private string currentTime = $"{TimeSpan.Zero:c}";
+    private string startStopLabel = "Start";
+
+    readonly Stopwatch stopwatch = new Stopwatch();
+
+    private async Task StartStop()
+    {
+        _stopped = !_stopped;
+        if (_stopped)
+        {
+            stopwatch.Start();
+            startStopLabel = "Stop";
+
+            while (_stopped)
+            {
+                if (!stopwatch.IsRunning)
+                {
+                    stopwatch.Start();
+                }
+
+                currentTime = $"{stopwatch.Elapsed:c}";
+
+                StateHasChanged();
+                await Task.Delay(100);
+            }
+        }
+        else
+        {
+            stopwatch.Stop();
+            startStopLabel = "Start";
+            StateHasChanged();
+        }
+    }
+
+    private void Reset()
+    {
+        stopwatch.Reset();
+        currentTime = $"{stopwatch.Elapsed:c}";
+    }
+}
